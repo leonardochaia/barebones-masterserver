@@ -139,9 +139,12 @@ namespace Barebones.MasterServer
                 return false;
             }
 
-            if (!IsPlayerAllowed(username, playerExt))
+            if (!IsPlayerAllowed(username, playerExt, out error))
             {
-                error = "You're not allowed";
+                if (error == null || error == string.Empty)
+                {
+                    error = "You're not allowed";
+                }
                 return false;
             }
 
@@ -419,8 +422,9 @@ namespace Barebones.MasterServer
         /// This will be called before adding a player to lobby.
         /// Override it to add custom checks for bans and etc.
         /// </summary>
-        protected virtual bool IsPlayerAllowed(string username, LobbyUserExtension user)
+        protected virtual bool IsPlayerAllowed(string username, LobbyUserExtension user, out string error)
         {
+            error = "You're not allowed";
             return true;
         }
 
