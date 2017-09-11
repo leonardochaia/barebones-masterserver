@@ -1,12 +1,13 @@
 ﻿using System.Collections;
-using System.Runtime.Remoting.Messaging;
 using Barebones.MasterServer;
 using UnityEngine;
+using System;
 
 public class ProfilesTestScript : MonoBehaviour
 {
 
     private string _username;
+    private ObservableDictionary _serverInventory;
 
 	// Use this for initialization
 	void Start ()
@@ -65,6 +66,7 @@ public class ProfilesTestScript : MonoBehaviour
             {
                 new ObservableInt(MyProfileKeys.Coins, 5),
                 new ObservableString(MyProfileKeys.Title, "DefaultTitle"),
+                new ObservableDictionary(MyProfileKeys.Inventory)
             };
 
             // Send a request to master server, to fill profile values
@@ -81,6 +83,10 @@ public class ProfilesTestScript : MonoBehaviour
                 {
                     // Log a message, when property changes
                     Logs.Info("Property changed:" + code + " - " + property.SerializeToString());
+                    if(code== MyProfileKeys.Inventory)
+                    {
+                        Logs.Info("Server: " + _serverInventory.SerializeToString());
+                    }
                 };
 
                 // Imitate game server
@@ -115,6 +121,7 @@ public class ProfilesTestScript : MonoBehaviour
         {
             new ObservableInt(MyProfileKeys.Coins, 5),
             new ObservableString(MyProfileKeys.Title, "DefaultTitle"),
+            new ObservableDictionary(MyProfileKeys.Inventory)
         };
 
         // Fill profile values
@@ -129,13 +136,29 @@ public class ProfilesTestScript : MonoBehaviour
             // Modify the profile (changes will automatically be sent to the master server)
             profile.GetProperty<ObservableInt>(MyProfileKeys.Coins).Add(4);
             profile.GetProperty<ObservableString>(MyProfileKeys.Title).Set("DifferentTitle");
-
+            _serverInventory = profile.GetProperty<ObservableDictionary>(MyProfileKeys.Inventory);
+            AddWood();
         }, connection);
 
     }
 
+    private void AddWood()
+    {
+        int newValue = 1;
+        var currentValue = _serverInventory.GetValue("Wood");
+        if (currentValue != null && currentValue != string.Empty)
+        {
+            newValue = Convert.ToInt32(currentValue) + 1;
+        }
+        Logs.Info("Set Wood > " + newValue);
+        _serverInventory.SetValue("Wood", newValue.ToString());
+    }
+
     // Update is called once per frame
     void Update () {
-		
+		if(Input.GetKeyDown(KeyCode.A))
+        {
+            AddWood();
+        }
 	}
 }
